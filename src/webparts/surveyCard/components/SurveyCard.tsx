@@ -20,7 +20,7 @@ interface ISurveyMapped {
   EndDate: string;
   Remaining: string;
 }
-  
+
 const SurveyCard: React.FC<ISurveyCardProps> = ({
   spHttpClient,
   siteUrl,
@@ -57,7 +57,7 @@ const SurveyCard: React.FC<ISurveyCardProps> = ({
 
       const remaining =
         diff > 0
-          ? `${diff} ${isArabic ? "يوم متبقي" : "Days remaining"}`
+          ? `${diff} ${isArabic ? "يوم متبقي" : "DAYS REMAINING"}`
           : isArabic
           ? "مغلق"
           : "Closed";
@@ -82,23 +82,50 @@ const SurveyCard: React.FC<ISurveyCardProps> = ({
   if (!survey) return <div>No active surveys</div>;
 
   return (
-    <div className={styles.surveyCard}>
-      <div className={styles.tag}>
-        {isArabic ? "استبيان الموظفين" : "EMPLOYEE SURVEY"} — {survey.Remaining}
+    <>
+      <div
+         className={`${styles.survaybg} ${isArabic ? styles.arabic : ""}`}
+        style={{
+          direction: isArabic ? "rtl" : "ltr",
+          textAlign: isArabic ? "right" : "left",
+        }}
+      >
+        <div className={styles.surveyCard}>
+          <div className={styles.tag}>
+            {isArabic ? "استبيان الموظفين" : "EMPLOYEE SURVEY"} -{" "}
+            {survey.Remaining}
+          </div>
+
+          <h2 className={styles.title}>{survey.Title}</h2>
+
+          <p className={styles.desc}>{survey.Description}</p>
+          <div className={styles.survayActions}>
+            <a
+              href={survey.SurveyURL}
+              style={{
+                textDecoration: "none",
+                color: "#fff",
+                fontWeight: "bold",
+              }}
+              className=""
+              target="_blank"
+            >
+              {isArabic ? " ابدأ الاستبيان ←" : "Take Survey →"}
+            </a>
+
+            <a
+              href={activeSurveysURL}
+              style={{
+                color: "#fff",
+              }}
+              target="_blank"
+            >
+              {isArabic ? "عرض الاستبيانات النشطة" : "View Active Surveys"}
+            </a>
+          </div>
+        </div>
       </div>
-
-      <h2 className={styles.title}>{survey.Title}</h2>
-
-      <p className={styles.desc}>{survey.Description}</p>
-
-      <a href={survey.SurveyURL} className="" target="_blank">
-        {isArabic ? "ابدأ الاستبيان →" : "Take Survey →"}
-      </a>
-
-      <a href={activeSurveysURL} className="" target="_blank">
-        {isArabic ? "عرض الاستبيانات النشطة" : "View Active Surveys"}
-      </a>
-    </div>
+    </>
   );
 };
 

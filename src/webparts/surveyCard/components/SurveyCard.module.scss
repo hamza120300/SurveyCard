@@ -1,4 +1,4 @@
-@import '~@fluentui/react/dist/sass/References.scss';
+@import "~@fluentui/react/dist/sass/References.scss";
 
 .surveyCard {
   overflow: hidden;
@@ -23,16 +23,19 @@
   a {
     text-decoration: none;
     color: "[theme:link, default:#03787c]";
-    color: var(--link); // note: CSS Custom Properties support is limited to modern browsers only
+    color: var(
+      --link
+    ); // note: CSS Custom Properties support is limited to modern browsers only
 
     &:hover {
       text-decoration: underline;
       color: "[theme:linkHovered, default: #014446]";
-      color: var(--linkHovered); // note: CSS Custom Properties support is limited to modern browsers only
+      color: var(
+        --linkHovered
+      ); // note: CSS Custom Properties support is limited to modern browsers only
     }
   }
 }
-
 
 // .survey-card {
 //   width: 360px;
@@ -45,22 +48,34 @@
 // }
 
 .tag {
+  font-family: "Segoe UI", sans-serif;
+  letter-spacing: 1px;
+  font-weight: 600;
   font-size: 12px;
-  font-weight: bold;
   margin-bottom: 12px;
   opacity: 0.9;
+  margin-bottom: 12px;
+  background-color: #7556a2;
+  color: white;
+  padding: 2px;
+  display: inline-block;
+  //display: inline;
+  padding: 5px 10px;
 }
 
 .title {
+  color: white;
   font-size: 22px;
   font-weight: 700;
   margin-bottom: 10px;
 }
 
 .desc {
+  color: white;
   font-size: 14px;
   margin-bottom: 20px;
   opacity: 0.95;
+  width: 410px;
 }
 
 // .take-survey,
@@ -72,3 +87,33 @@
 //   text-decoration: underline;
 //   cursor: pointer;
 // }
+
+.survaybg {
+  background-image: url("../assets/suervy.png");
+  //object-fit: contain;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-repeat: no-repeat;
+  object-fit: cover;
+  width: 455px;
+  // width: 35%;
+  height: 100%;
+  // height: auto;
+  background-size: cover;
+  padding: 1rem;
+  //border-radius: 10px;
+}
+
+.survayActions {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.survaybg.arabic {
+  transform: scaleX(-1);
+}
+
+.survaybg.arabic * {
+  transform: scaleX(-1); /* Flip children back to normal */
+}
