@@ -20,7 +20,7 @@ interface ISurveyMapped {
   EndDate: string;
   Remaining: string;
 }
-
+  
 const SurveyCard: React.FC<ISurveyCardProps> = ({
   spHttpClient,
   siteUrl,
