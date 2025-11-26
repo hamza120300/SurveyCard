@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "survey-card-client-side-solution",
+    "id": "883f442c-9498-4395-b843-9d56dbff0b61",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.21.1"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "SurveyCard description"
+      },
+      "longDescription": {
+        "default": "SurveyCard description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "survey-card Feature",
+        "description": "The feature that activates elements of the survey-card solution.",
+        "id": "c9fd2bf7-d7ef-43df-ae15-a7f7e43ce842",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/survey-card.sppkg"
+  }
+}

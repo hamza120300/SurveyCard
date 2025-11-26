@@ -1,0 +1,18 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "22.19.0",
+    "sdksVersions": {},
+    "version": "1.21.1",
+    "libraryName": "survey-card",
+    "libraryId": "883f442c-9498-4395-b843-9d56dbff0b61",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "SurveyCard",
+    "solutionShortDescription": "SurveyCard description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "webpart"
+  }
+}
