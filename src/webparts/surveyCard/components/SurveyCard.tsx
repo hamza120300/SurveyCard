@@ -84,7 +84,7 @@ const SurveyCard: React.FC<ISurveyCardProps> = ({
   return (
     <>
       <div
-         className={`${styles.survaybg} ${isArabic ? styles.arabic : ""}`}
+        className={isArabic ? styles.survaybgAr : styles.survaybg}
         style={{
           direction: isArabic ? "rtl" : "ltr",
           textAlign: isArabic ? "right" : "left",

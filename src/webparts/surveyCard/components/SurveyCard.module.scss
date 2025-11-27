@@ -75,7 +75,8 @@
   font-size: 14px;
   margin-bottom: 20px;
   opacity: 0.95;
-  width: 410px;
+  // width: 410px;
+  width: 345px;
 }
 
 // .take-survey,
@@ -95,10 +96,26 @@
   background-position: center center;
   background-repeat: no-repeat;
   object-fit: cover;
-  width: 455px;
-  // width: 35%;
+  // width: 456px;
+  // height: 304px;
+  width: 100%;
   height: 100%;
-  // height: auto;
+  background-size: cover;
+  padding: 1rem;
+  //border-radius: 10px;
+}
+
+.survaybgAr {
+  background-image: url("../assets/Ar-Survey.png");
+  //object-fit: contain;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-repeat: no-repeat;
+  object-fit: cover;
+  // width: 456px;
+  // height: 304px;
+  width: 100%;
+  height: 100%;
   background-size: cover;
   padding: 1rem;
   //border-radius: 10px;
@@ -108,12 +125,4 @@
   display: flex;
   flex-direction: column;
   gap: 1.4rem;
-}
-
-.survaybg.arabic {
-  transform: scaleX(-1);
-}
-
-.survaybg.arabic * {
-  transform: scaleX(-1); /* Flip children back to normal */
 }
