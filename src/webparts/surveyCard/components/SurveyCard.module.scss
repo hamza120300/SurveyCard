@@ -126,3 +126,14 @@
   flex-direction: column;
   gap: 1.4rem;
 }
+
+.notAllowedBox {
+  padding: 20px;
+  background: #ffe6e6;
+  border-left: 5px solid #d9534f;
+  border-radius: 8px;
+  color: #a94442;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 20px 0;
+}

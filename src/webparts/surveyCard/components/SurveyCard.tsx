@@ -19,6 +19,7 @@ interface ISurveyMapped {
   Created: string;
   EndDate: string;
   Remaining: string;
+  isAllowed: boolean; // <-- added
 }
 
 const SurveyCard: React.FC<ISurveyCardProps> = ({
@@ -30,56 +31,175 @@ const SurveyCard: React.FC<ISurveyCardProps> = ({
 
   React.useEffect(() => {
     const fetchData = async () => {
-      const response: SPHttpClientResponse = await spHttpClient.get(
-        `${siteUrl}/_api/web/lists/getbytitle('Surveys')/items` +
-          `?$select=Id,Title,Title_Ar,Description,Description_Ar,SurveyURL,Created,EndDate,Active` +
-          `&$filter=Active eq 1` +
-          `&$orderby=Created desc` +
-          `&$top=1`,
-        SPHttpClient.configurations.v1
-      );
+      try {
+        // ------------------ Get User Groups ------------------
+        const groupsResponse = await spHttpClient.get(
+          `${siteUrl}/_api/web/currentuser/groups`,
+          SPHttpClient.configurations.v1
+        );
+        const groupsJson = await groupsResponse.json();
+        const userGroups = groupsJson.value.map((g: any) => g.Title);
 
-      const items = await response.json();
+        // ------------------ Fetch Active Surveys ------------------
+        const response: SPHttpClientResponse = await spHttpClient.get(
+          `${siteUrl}/_api/web/lists/getbytitle('Surveys')/items` +
+            `?$select=Id,Title,Title_Ar,Description,Description_Ar,SurveyURL,Created,EndDate,Active,TargetAudience/Title` +
+            `&$expand=TargetAudience` +
+            `&$filter=Active eq 1` +
+            `&$orderby=Created desc` +
+            `&$top=10`, // get last 10 surveys
+          SPHttpClient.configurations.v1
+        );
 
-      if (items.value.length === 0) {
+        const items = await response.json();
+
+        if (items.value.length === 0) {
+          setSurvey(null);
+          return;
+        }
+
+        // ------------------ Find First Allowed Survey ------------------
+        let allowedSurvey = null;
+        for (const item of items.value) {
+          const requiredAudience =
+            item.TargetAudience?.Title || "All Employees";
+          const isAllowed =
+            requiredAudience === "All Employees" ||
+            userGroups.includes(requiredAudience);
+
+          if (isAllowed) {
+            allowedSurvey = { ...item, isAllowed };
+            break; // stop at first allowed survey
+          }
+        }
+
+        if (!allowedSurvey) {
+          setSurvey(null);
+          return;
+        }
+
+        // ------------------ Remaining Days Calculation ------------------
+        const endDate = new Date(allowedSurvey.EndDate);
+        const today = new Date();
+        const diff = Math.ceil(
+          (endDate.getTime() - today.getTime()) / (1000 * 3600 * 24)
+        );
+
+        const remaining =
+          diff > 0
+            ? `${diff} ${isArabic ? "يوم متبقي" : "DAYS REMAINING"}`
+            : isArabic
+            ? "مغلق"
+            : "Closed";
+
+        // ------------------ Mapping ------------------
+        const mappedItem: ISurveyMapped = {
+          id: allowedSurvey.Id,
+          Title: isArabic ? allowedSurvey.Title_Ar : allowedSurvey.Title,
+          Description: isArabic
+            ? allowedSurvey.Description_Ar
+            : allowedSurvey.Description,
+          SurveyURL: allowedSurvey.SurveyURL,
+          Created: allowedSurvey.Created,
+          EndDate: allowedSurvey.EndDate,
+          Remaining: remaining,
+          isAllowed: allowedSurvey.isAllowed,
+        };
+
+        setSurvey(mappedItem);
+      } catch (error) {
+        console.error("Error fetching surveys:", error);
         setSurvey(null);
-        return;
       }
-
-      const item = items.value[0];
-
-      // ---- Remaining Days Calculation ----
-      const endDate = new Date(item.EndDate);
-      const today = new Date();
-      const diff = Math.ceil(
-        (endDate.getTime() - today.getTime()) / (1000 * 3600 * 24)
-      );
-
-      const remaining =
-        diff > 0
-          ? `${diff} ${isArabic ? "يوم متبقي" : "DAYS REMAINING"}`
-          : isArabic
-          ? "مغلق"
-          : "Closed";
-
-      // ---- Mapping (your preferred style) ----
-      const mappedItem: ISurveyMapped = {
-        id: item.Id,
-        Title: isArabic ? item.Title_Ar : item.Title,
-        Description: isArabic ? item.Description_Ar : item.Description,
-        SurveyURL: item.SurveyURL,
-        Created: item.Created,
-        EndDate: item.EndDate,
-        Remaining: remaining,
-      };
-
-      setSurvey(mappedItem);
     };
 
     fetchData();
   }, [spHttpClient, siteUrl]);
 
+  // React.useEffect(() => {
+  //   const fetchData = async () => {
+
+  //     // ------------------ Get User Groups ------------------
+  //     const groupsResponse = await spHttpClient.get(
+  //       `${siteUrl}/_api/web/currentuser/groups`,
+  //       SPHttpClient.configurations.v1
+  //     );
+  //     const groupsJson = await groupsResponse.json();
+  //     const userGroups = groupsJson.value.map((g: any) => g.Title);
+
+  //     // ------------------ Fetch Active Survey ------------------
+  //     const response: SPHttpClientResponse = await spHttpClient.get(
+  //       `${siteUrl}/_api/web/lists/getbytitle('Surveys')/items` +
+  //         `?$select=Id,Title,Title_Ar,Description,Description_Ar,SurveyURL,Created,EndDate,Active,TargetAudience/TargetGroup` +
+  //         `&$expand=TargetAudience` +
+  //         `&$filter=Active eq 1` +
+  //         `&$orderby=Created desc` +
+  //          `&$top=10`, // get last 10 surveys
+  //       SPHttpClient.configurations.v1
+  //     );
+  //     const items = await response.json();
+
+  //     if (items.value.length === 0) {
+  //       setSurvey(null);
+  //       return;
+  //     }
+
+  //     const item = items.value[0];
+
+  //     // ------------------ Audience Check ------------------
+  //     const requiredAudience =
+  //       item.TargetAudience?.TargetGroup || "All Employees";
+
+  //     const isAllowed =
+  //       requiredAudience === "All Employees" ||
+  //       userGroups.includes(requiredAudience);
+
+  //     // ------------------ Remaining Days Calculation ------------------
+  //     const endDate = new Date(item.EndDate);
+  //     const today = new Date();
+  //     const diff = Math.ceil(
+  //       (endDate.getTime() - today.getTime()) / (1000 * 3600 * 24)
+  //     );
+
+  //     const remaining =
+  //       diff > 0
+  //         ? `${diff} ${isArabic ? "يوم متبقي" : "DAYS REMAINING"}`
+  //         : isArabic
+  //         ? "مغلق"
+  //         : "Closed";
+
+  //     // ------------------ Mapping ------------------
+  //     const mappedItem: ISurveyMapped = {
+  //       id: item.Id,
+  //       Title: isArabic ? item.Title_Ar : item.Title,
+  //       Description: isArabic ? item.Description_Ar : item.Description,
+  //       SurveyURL: item.SurveyURL,
+  //       Created: item.Created,
+  //       EndDate: item.EndDate,
+  //       Remaining: remaining,
+  //       isAllowed: isAllowed, // <-- added
+  //     };
+
+  //     setSurvey(mappedItem);
+  //   };
+
+  //   fetchData();
+  // }, [spHttpClient, siteUrl]);
+
+  // ------------------ If No Survey ------------------
   if (!survey) return <div>No active surveys</div>;
+
+  // ------------------ If user NOT allowed ------------------
+  if (!survey.isAllowed)
+    return (
+      <div className={styles.notAllowedBox}>
+        <span>
+          {isArabic
+            ? "لا يمكنك المشاركة في هذا الاستبيان"
+            : "You are not allowed to take this survey"}
+        </span>
+      </div>
+    );
 
   return (
     <>
