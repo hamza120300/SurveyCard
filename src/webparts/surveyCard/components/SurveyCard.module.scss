@@ -51,7 +51,7 @@
   font-family: "Segoe UI", sans-serif;
   letter-spacing: 1px;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11px;
   margin-bottom: 12px;
   opacity: 0.9;
   margin-bottom: 12px;
@@ -66,13 +66,14 @@
 .title {
   color: white;
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 600;
   margin-bottom: 10px;
+  line-height: 28px;
 }
 
 .desc {
   color: white;
-  font-size: 14px;
+  font-size: 16px;
   margin-bottom: 20px;
   opacity: 0.95;
   // width: 410px;

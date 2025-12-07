@@ -40,7 +40,7 @@ const SurveyCard: React.FC<ISurveyCardProps> = ({
         const groupsJson = await groupsResponse.json();
         const userGroups = groupsJson.value.map((g: any) => g.Title);
 
-        // ------------------ Fetch Active Surveys ------------------
+        // ------------------ Fetch Active Surveys ------------------ TargetAudience/Title
         const response: SPHttpClientResponse = await spHttpClient.get(
           `${siteUrl}/_api/web/lists/getbytitle('Surveys')/items` +
             `?$select=Id,Title,Title_Ar,Description,Description_Ar,SurveyURL,Created,EndDate,Active,TargetAudience/Title` +
@@ -99,7 +99,7 @@ const SurveyCard: React.FC<ISurveyCardProps> = ({
           Description: isArabic
             ? allowedSurvey.Description_Ar
             : allowedSurvey.Description,
-          SurveyURL: allowedSurvey.SurveyURL,
+          SurveyURL: allowedSurvey.SurveyURL?.Url || "", //
           Created: allowedSurvey.Created,
           EndDate: allowedSurvey.EndDate,
           Remaining: remaining,
