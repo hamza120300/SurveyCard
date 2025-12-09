@@ -1,7 +1,7 @@
 import * as React from "react";
 import styles from "./SurveyCard.module.scss";
-import { SPHttpClient, SPHttpClientResponse } from "@microsoft/sp-http";
-
+//import { SPHttpClient, SPHttpClientResponse } from "@microsoft/sp-http";
+import { SPHttpClient } from "@microsoft/sp-http";
 const isArabic =
   window.location.pathname.toLowerCase().indexOf("/sitepages/ar/") !== -1;
 
@@ -32,7 +32,14 @@ const SurveyCard: React.FC<ISurveyCardProps> = ({
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        // ------------------ Get User Groups ------------------
+        // ------------------ Get Current User ------------------
+        // const userResponse = await spHttpClient.get(
+        //   `${siteUrl}/_api/web/currentuser`,
+        //   SPHttpClient.configurations.v1
+        // );
+        // const currentUser = await userResponse.json();
+
+        // ------------------ Get User SharePoint Groups ------------------
         const groupsResponse = await spHttpClient.get(
           `${siteUrl}/_api/web/currentuser/groups`,
           SPHttpClient.configurations.v1
@@ -40,14 +47,18 @@ const SurveyCard: React.FC<ISurveyCardProps> = ({
         const groupsJson = await groupsResponse.json();
         const userGroups = groupsJson.value.map((g: any) => g.Title);
 
-        // ------------------ Fetch Active Surveys ------------------ TargetAudience/Title
-        const response: SPHttpClientResponse = await spHttpClient.get(
+        // LOG #1 — User Groups
+        console.log("🔵 USER GROUPS:", userGroups);
+
+        // ------------------ Fetch Active Surveys ------------------
+        const todayISO = new Date().toISOString();
+
+        const response = await spHttpClient.get(
           `${siteUrl}/_api/web/lists/getbytitle('Surveys')/items` +
-            `?$select=Id,Title,Title_Ar,Description,Description_Ar,SurveyURL,Created,EndDate,Active,TargetAudience/Title` +
+            `?$select=Id,Title,Title_Ar,Description,Description_Ar,SurveyURL,Created,EndDate,Active,TargetAudience/Id,TargetAudience/Title` +
             `&$expand=TargetAudience` +
-            `&$filter=Active eq 1` +
-            `&$orderby=Created desc` +
-            `&$top=10`, // get last 10 surveys
+            `&$filter=Active eq 1 and EndDate ge datetime'${todayISO}'` +
+            `&$orderby=Created desc`,
           SPHttpClient.configurations.v1
         );
 
@@ -58,18 +69,62 @@ const SurveyCard: React.FC<ISurveyCardProps> = ({
           return;
         }
 
-        // ------------------ Find First Allowed Survey ------------------
+        // ------------------ FIND FIRST ALLOWED SURVEY ------------------
         let allowedSurvey = null;
+
         for (const item of items.value) {
-          const requiredAudience =
-            item.TargetAudience?.Title || "All Employees";
-          const isAllowed =
-            requiredAudience === "All Employees" ||
-            userGroups.includes(requiredAudience);
+          let isAllowed = false;
+
+          const audienceTitle = item.TargetAudience?.Title || null; // Marketing
+
+          if (!audienceTitle) {
+            // No target restriction
+            isAllowed = true;
+          } else {
+            // ------------------ Load SurveysTarget row ------------------
+            const targetResponse = await spHttpClient.get(
+              `${siteUrl}/_api/web/lists/getbytitle('SurveysTarget')/items(${item.TargetAudience.Id})?` +
+                `$select=TargetGroup/Id,TargetGroup/Title&$expand=TargetGroup`,
+              SPHttpClient.configurations.v1
+            );
+
+            const targetJson = await targetResponse.json();
+            const targetGroup = targetJson.TargetGroup; //
+
+            // LOG #2 — TargetGroup object for this survey
+            console.log("🟡 TARGET GROUP for Survey:", {
+              SurveyId: item.Id,
+              TargetGroup: targetGroup,
+            });
+
+            if (!targetGroup) {
+              isAllowed = true;
+            } else {
+              // Compare by Titles only
+              // const matches =
+              //   targetGroup.Title?.trim().toLowerCase() === // M D
+              //   audienceTitle.trim().toLowerCase(); // M
+
+              const matches =
+                userGroups.includes(targetGroup.Title) ||
+                audienceTitle.trim().toLowerCase() ===
+                  "All Employees".trim().toLowerCase();
+
+              // LOG #3 — Matching result
+              console.log("🟢 MATCH CHECK:", {
+                SurveyId: item.Id,
+                TargetGroupTitle: targetGroup.Title,
+                AudienceTitle: audienceTitle,
+                Match: matches,
+              });
+
+              isAllowed = matches;
+            }
+          }
 
           if (isAllowed) {
-            allowedSurvey = { ...item, isAllowed };
-            break; // stop at first allowed survey
+            allowedSurvey = item;
+            break;
           }
         }
 
@@ -78,11 +133,10 @@ const SurveyCard: React.FC<ISurveyCardProps> = ({
           return;
         }
 
-        // ------------------ Remaining Days Calculation ------------------
+        // ------------------ Remaining Days ------------------
         const endDate = new Date(allowedSurvey.EndDate);
-        const today = new Date();
         const diff = Math.ceil(
-          (endDate.getTime() - today.getTime()) / (1000 * 3600 * 24)
+          (endDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24)
         );
 
         const remaining =
@@ -93,22 +147,22 @@ const SurveyCard: React.FC<ISurveyCardProps> = ({
             : "Closed";
 
         // ------------------ Mapping ------------------
-        const mappedItem: ISurveyMapped = {
+        const mappedItem = {
           id: allowedSurvey.Id,
           Title: isArabic ? allowedSurvey.Title_Ar : allowedSurvey.Title,
           Description: isArabic
             ? allowedSurvey.Description_Ar
             : allowedSurvey.Description,
-          SurveyURL: allowedSurvey.SurveyURL?.Url || "", //
+          SurveyURL: allowedSurvey.SurveyURL?.Url || "",
           Created: allowedSurvey.Created,
           EndDate: allowedSurvey.EndDate,
           Remaining: remaining,
-          isAllowed: allowedSurvey.isAllowed,
+          isAllowed: true,
         };
 
         setSurvey(mappedItem);
       } catch (error) {
-        console.error("Error fetching surveys:", error);
+        console.error("🚨 Error fetching surveys:", error);
         setSurvey(null);
       }
     };
@@ -187,7 +241,7 @@ const SurveyCard: React.FC<ISurveyCardProps> = ({
   // }, [spHttpClient, siteUrl]);
 
   // ------------------ If No Survey ------------------
-  if (!survey) return <div>No active surveys</div>;
+  if (!survey) return <div></div>;
 
   // ------------------ If user NOT allowed ------------------
   if (!survey.isAllowed)
